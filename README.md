@@ -1,2 +1,3 @@
-# rec-sys-based-llm
-this is project skripsi 
+# Project Rekomendasi Perbaikan Aplikasi Berbasis Machine Learning
+object : Digital Korlantas POLRI
+🔥 menyala utekku!
