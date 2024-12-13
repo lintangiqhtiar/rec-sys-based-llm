@@ -6,26 +6,31 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
+from selenium.common.exceptions import TimeoutException, NoSuchElementException
 
 def setup_driver():
     """Mengatur driver Chrome."""
-    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
+    options = webdriver.ChromeOptions()
+    options.add_argument('--headless')  # Uncomment this line to run in headless mode
+    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
     return driver
 
 def buka_halaman(driver, url):
     """Membuka halaman Play Store."""
     driver.get(url)
-    time.sleep(5)
+    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.TAG_NAME, 'body')))  # Wait for the page to load
 
 def klik_tombol_lihat_semua_ulasan(driver):
     """Klik tombol 'Lihat Semua Ulasan'."""
     try:
-        button = WebDriverWait(driver, 10).until(
+        button = WebDriverWait(driver, 15).until(
             EC.element_to_be_clickable((By.XPATH, '//span[text()="Lihat semua ulasan"]'))
         )
         button.click()
         print("Tombol 'Lihat Semua Ulasan' berhasil diklik.")
-        time.sleep(3)
+        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'div[role="dialog"]')))  # Wait for the popup
+    except TimeoutException:
+        print("Gagal mengklik tombol 'Lihat Semua Ulasan': Timeout")
     except Exception as e:
         print("Gagal mengklik tombol 'Lihat Semua Ulasan':", e)
 
@@ -59,7 +64,7 @@ def ambil_data_ulasan(driver, popup_selector, output_file):
             scroll_popup(driver, popup)
 
             # Ambil semua elemen ulasan
-            reviews = driver.find_elements(By.XPATH, '//div[contains(@jscontroller, "H6eOGe")]')
+            reviews = driver.find_elements(By.XPATH,'//div[contains(@jscontroller, "H6eOGe")]')
             print(f"Jumlah ulasan ditemukan: {len(reviews)}")
 
             # Loop untuk mengambil data ulasan
@@ -75,9 +80,10 @@ def ambil_data_ulasan(driver, popup_selector, output_file):
                     writer.writerow([name, rating, date, comment])
                 except Exception as e:
                     print(f"Error saat mengambil data ulasan ke-{idx}: {e}")
+    except Exception as e :
+        print(f"gagal mengambil ulasan : {e}")
 
-    except Exception as e:
-        print("Gagal menemukan atau memproses pop-up ulasan:", e)
+   
 
 
 def main():
